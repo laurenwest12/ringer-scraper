@@ -1,7 +1,13 @@
-from ringer.total import total_html
 from bs4 import BeautifulSoup
 
-def extract_players(html):
+from functions import flatten, print_json
+
+from ringer.qb import qb_html
+from ringer.rb import rb_html
+from ringer.wr import wr_html
+from ringer.te import te_html
+
+def extract_players(html, tier):
     players = []
     soup = BeautifulSoup(html, "html.parser")
     rank_div = soup.find_all("div",class_="w-8 lg:w-12 lg:min-w-8 text-center shrink type-row-text")
@@ -12,13 +18,30 @@ def extract_players(html):
         rank = rank_div[i].text
         name = name_div[i].text
         pos = pos_div[i].text
+
         players.append({
             "rank": rank,
             "name": name,
-            "pos": pos
+            "pos": pos,
+            "tier": tier
         })
 
     return players
 
-total_players = extract_players(total_html)
-print(total_players)
+def extract_players_by_tier(html):
+    all_players = []
+    soup = BeautifulSoup(html, "html.parser")
+    tiers = soup.select(".relative.px-4")
+
+    for i in range(len(tiers)):
+        tier = tiers[i]
+        print(tier)
+        players = extract_players(str(tier), i+1)
+        all_players.append(players)
+
+    return flatten(all_players)
+
+qbs = extract_players_by_tier(qb_html)
+rbs = extract_players_by_tier(rb_html)
+wrs = extract_players_by_tier(wr_html)
+tes = extract_players_by_tier(te_html)
